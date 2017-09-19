@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Favorite Movies</title>
+  <style type="text/css">
+    button,
+    form,
+    input {
+      margin: 10px;
+    }
+    .img-thumbnail, .thumbnail {
+      float:left;
+      margin:2px;
+    }
+
+
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1></h1>
+
+    <div class="row">
+      <div class="col-md-8">
+        <!-- Rendered Buttons will get Dumped Here  -->
+        <div id="buttons-view"></div>
+      </div>
+      <div class="col-md-4">
+        <form id="gif-form">
+          <label for="gif-input">Add a Movie</label>
+          <input type="text" id="gif-input"><br>
+
+          <!-- Button triggers new gif to be added -->
+          <input id="add-gif" type="submit" value="Add a Movie Bro">
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Movies will Get Dumped Dere -->
+    <div id="gifs-view"></div>
+
+
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+
+      // Initial array of gifs
+      var gifs = ["The Matrix", "The Notebook", "Mr. Nobody", "The Lion King"];
+
+
+      // displayMovieInfo function re-renders the HTML to display the appropriate content
+      //1. click button
+      //2. grab iamges
+      //3. create image element
+      //4. put image element on dom
+      var data
+      function displayMovieInfo() {
+
+        var gif = $(this).attr("data-name");
+        var queryURL = "http://api.giphy.com/v1/gifs/search?q=" + gif +"&api_key=61676187dc494730924d10127c4d406e&limit=5"
+
+        // Creating an AJAX call for the specific gif button being clicked
+        $.ajax({
+          url: queryURL,
+          method: "GET"
+        }).done(function(response) {
+          //clear previous view
+          $("#gifs-view").empty()
+          console.log(response)
+          data = response.data
+
+          var fixedHeightStill = []
+          var fixedHeight = []
+          var rating;
+          var ratingCaption; 
+
+          for (var i = 0; i < data.length; i++) {
+
+            fixedHeight.push(data[i].images.fixed_height.url)
+            fixedHeightStill.push(data[i].images.fixed_height_still.url)
+            console.log(fixedHeight)
+            console.log(fixedHeightStill)
+
+            var imageDiv = $('<div class=gifAnimate>')
+            
+            var divCaption = $('<div class="caption">')
+            rating = data[i].rating;
+            ratingCaption = "Rating: " + rating
+            var pTag = $("<p>")
+            pTag.append(ratingCaption);
+            divCaption.append(pTag)
+            var gif= $("<img>");
+            gif.attr("src",fixedHeightStill[i])
+            gif.attr("data-still",fixedHeightStill[i])
+            gif.attr("data-animate",fixedHeight[i]);
+            gif.attr("data-state","still")
+            gif.attr("style","width:200px")
+            gif.addClass("gifAnimate")
+
+
+            imageDiv.append(divCaption)
+            imageDiv.append(gif)
+
+
+            $("#gifs-view").prepend(imageDiv)
+          }
+
+        });
+
+      }
+
+      // Function for displaying gif data
+      function renderButtons() {
+
+        // Deleting the gifs prior to adding new gifs
+        // (this is necessary otherwise you will have repeat buttons)
+        $("#buttons-view").empty();
+
+        // Looping through the array of gifs
+        for (var i = 0; i < gifs.length; i++) {
+
+          // Then dynamicaly generating buttons for each gif in the array
+          // This code $("<button>") is all jQuery needs to create the beginning and end tag. (<button></button>)
+          var a = $("<button>");
+          // Adding a class of gif to our button
+          a.addClass("gif");
+          // Adding a data-attribute
+          a.attr("data-name", gifs[i]);
+          // Providing the initial button text
+          a.text(gifs[i]);
+          // Adding the button to the buttons-view div
+          $("#buttons-view").append(a);
+        }
+      }
+
+      // This function handles events where a gif button is clicked
+      $("#add-gif").on("click", function(event) {
+        event.preventDefault();
+        // This line grabs the input from the textbox
+        var gif = $("#gif-input").val().trim();
+
+        // Adding gif from the textbox to our array
+        gifs.push(gif);
+
+        // Calling renderButtons which handles the processing of our gif array
+        renderButtons();
+      });
+
+      // Adding a click event listener to all elements with a class of "gif"
+      $(document).on("click", ".gif", displayMovieInfo);
+
+
+      // Calling the renderButtons function to display the intial buttons
+      renderButtons();
+
+      $(document).on("click",".gifAnimate",animateToggle);
+
+      function animateToggle() {
+
+      // The attr jQuery method allows us to get or set the value of any attribute on our HTML element
+      var currentState = $(this).attr("data-state")
+
+      // ternary
+      var newState = (currentState === 'still') ? 'animate' : 'still'
+
+      var imageUrl = $(this).attr("data-" + newState)
+
+      $(this).attr("src", imageUrl)
+
+      $(this).attr("data-state", newState)
+
+    }
+  </script>
+</div>
+</body>
+
+</html>
