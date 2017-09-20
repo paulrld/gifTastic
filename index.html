@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Favorite Movies</title>
+  <title>Favorite Gifs</title>
   <style type="text/css">
     button,
     form,
@@ -41,7 +41,7 @@
 
     </div>
 
-    <!-- Movies will Get Dumped Dere -->
+    <!-- Gifs will Get Dumped Dere -->
     <div id="gifs-view"></div>
 
 
@@ -61,19 +61,20 @@
     <script type="text/javascript">
 
       // Initial array of gifs
-      var gifs = ["The Matrix", "The Notebook", "Mr. Nobody", "The Lion King"];
+      var topics = ["cat", "dog", "parrot", "monkey"];
 
 
-      // displayMovieInfo function re-renders the HTML to display the appropriate content
-      //1. click button
-      //2. grab iamges
-      //3. create image element
-      //4. put image element on dom
-      var data
-      function displayMovieInfo() {
+      // displayGifInfo function re-renders the HTML to display the appropriate content
+      //1. get gif info
+      //2. loop through 10 still and animated images
+      //3.   get animated image and still images
+      //4.   get rating
+      //5.   store stuff in div and ptags
+      
+      function displayGifInfo() {
 
         var gif = $(this).attr("data-name");
-        var queryURL = "https://api.giphy.com/v1/gifs/search?q=" + gif +"&api_key=61676187dc494730924d10127c4d406e&limit=5"
+        var queryURL = "https://api.giphy.com/v1/gifs/search?q=" + gif +"&api_key=61676187dc494730924d10127c4d406e&limit=10"
 
         // Creating an AJAX call for the specific gif button being clicked
         $.ajax({
@@ -83,42 +84,38 @@
           //clear previous view
           $("#gifs-view").empty()
           //console.log(response)
-          data = response.data
-
-          var fixedHeightStill = []
-          var fixedHeight = []
-          var rating;
-          var ratingCaption; 
+          var data = response.data//get the gif data
 
           for (var i = 0; i < data.length; i++) {
 
-            fixedHeight.push(data[i].images.fixed_height.url)
-            fixedHeightStill.push(data[i].images.fixed_height_still.url)
+            
+            var fixedHeight = data[i].images.fixed_height.url
+            var fixedHeightStill = data[i].images.fixed_height_still.url
             //console.log(fixedHeight)
             //console.log(fixedHeightStill)
 
-            var imageDiv = $('<div class=gifAnimate>')
+            var imageDiv = $('<div class=gifAnimate>')//image div for gif
             
-            var divCaption = $('<div class="caption">')
-            rating = data[i].rating;
-            ratingCaption = "Rating: " + rating
+            var divCaption = $('<div class="caption">')//div for rating
+            var rating = data[i].rating;//get the rating
+            var ratingCaption = "Rating: " + rating
             var pTag = $("<p>")
-            pTag.append(ratingCaption);
-            divCaption.append(pTag)
-            var gif= $("<img>");
-            gif.attr("src",fixedHeightStill[i])
-            gif.attr("data-still",fixedHeightStill[i])
-            gif.attr("data-animate",fixedHeight[i]);
-            gif.attr("data-state","still")
-            gif.attr("style","width:200px")
-            gif.addClass("gifAnimate")
+            pTag.append(ratingCaption);//place rating stuff in a ptag
+            divCaption.append(pTag)//put ptag in a div caption (boostrap thing)
+            var gif= $("<img>");//create image tag for current gf
+            gif.attr("src",fixedHeightStill)//set to none animated gif
+            gif.attr("data-still",fixedHeightStill)//set still link
+            gif.attr("data-animate",fixedHeight);//set animated link
+            gif.attr("data-state","still")//set state to still
+            gif.attr("style","width:200px")//
+            gif.addClass("gifAnimate")//use gifAnimate class for the  buttons
 
 
-            imageDiv.append(divCaption)
-            imageDiv.append(gif)
+            imageDiv.append(divCaption)//add caption stuff in image div
+            imageDiv.append(gif)//add gif stuff in image div
 
 
-            $("#gifs-view").prepend(imageDiv)
+            $("#gifs-view").prepend(imageDiv)//put all the stuff in image onto div with id gifs-view
           }
 
         });
@@ -133,7 +130,7 @@
         $("#buttons-view").empty();
 
         // Looping through the array of gifs
-        for (var i = 0; i < gifs.length; i++) {
+        for (var i = 0; i < topics.length; i++) {
 
           // Then dynamicaly generating buttons for each gif in the array
           // This code $("<button>") is all jQuery needs to create the beginning and end tag. (<button></button>)
@@ -141,9 +138,9 @@
           // Adding a class of gif to our button
           a.addClass("gif");
           // Adding a data-attribute
-          a.attr("data-name", gifs[i]);
+          a.attr("data-name", topics[i]);
           // Providing the initial button text
-          a.text(gifs[i]);
+          a.text(topics[i]);
           // Adding the button to the buttons-view div
           $("#buttons-view").append(a);
         }
@@ -156,14 +153,14 @@
         var gif = $("#gif-input").val().trim();
 
         // Adding gif from the textbox to our array
-        gifs.push(gif);
+        topics.push(gif);
 
         // Calling renderButtons which handles the processing of our gif array
         renderButtons();
       });
 
       // Adding a click event listener to all elements with a class of "gif"
-      $(document).on("click", ".gif", displayMovieInfo);
+      $(document).on("click", ".gif", displayGifInfo);
 
 
       // Calling the renderButtons function to display the intial buttons
